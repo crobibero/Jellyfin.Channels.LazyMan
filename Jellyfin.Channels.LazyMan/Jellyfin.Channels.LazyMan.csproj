@@ -1,0 +1,27 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup> 
+        <AssemblyVersion>1.0.0.0</AssemblyVersion> 
+        <FileVersion>1.0.0.0</FileVersion> 
+        <TargetFramework>netstandard2.0</TargetFramework> 
+    </PropertyGroup>
+
+    <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
+      <OutputPath>bin\Debug</OutputPath>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <PackageReference Include="Jellyfin.Controller" Version="10.3.0" />
+      <PackageReference Include="System.Memory" Version="4.5.2" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Folder Include="Images" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <None Remove="Images\LM.png" />
+      <EmbeddedResource Include="Images\LM.png" />
+    </ItemGroup>
+
+</Project>
