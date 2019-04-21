@@ -17,7 +17,7 @@ namespace Jellyfin.Channels.LazyMan.Utils
             var validIp = Dns.GetHostAddresses(PluginConfiguration.M3U8Url)[0];
             var testIp = Dns.GetHostAddresses(testHost)[0];
 
-            logger.LogInformation("[PingTest] Host: {0} ValidIP: {1} HostIP: {2}",
+            logger.LogDebug("[PingTest] Host: {0} ValidIP: {1} HostIP: {2}",
                 testHost, validIp, testIp);
 
             return Equals(validIp, testIp);

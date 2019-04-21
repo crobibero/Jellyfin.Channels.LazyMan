@@ -33,11 +33,11 @@ namespace Jellyfin.Channels.LazyMan.GameApi
                 }
             };
 
-            _logger.LogInformation($"[GetStreamUrlAsync] Getting stream url from: {endpoint}");
+            _logger.LogDebug($"[GetStreamUrlAsync] Getting stream url from: {endpoint}");
 
             var response = await _httpClient.GetResponse(request).ConfigureAwait(false);
 
-            _logger.LogInformation($"[GetStreamUrlAsync] ResponseCode: {response.StatusCode}");
+            _logger.LogDebug($"[GetStreamUrlAsync] ResponseCode: {response.StatusCode}");
 
             string url;
             using (var reader = new StreamReader(response.Content))
@@ -45,7 +45,7 @@ namespace Jellyfin.Channels.LazyMan.GameApi
                 url = await reader.ReadToEndAsync().ConfigureAwait(false);
             }
 
-            _logger.LogInformation($"[GetStreamUrlAsync] Response: {url}");
+            _logger.LogDebug($"[GetStreamUrlAsync] Response: {url}");
 
             // stream not ready yet
             if (url.Contains("Not"))

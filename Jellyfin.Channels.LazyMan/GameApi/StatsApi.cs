@@ -49,7 +49,7 @@ namespace Jellyfin.Channels.LazyMan.GameApi
 
             request.Url = string.Format(request.Url, inputDate.ToString("yyyy-MM-dd"));
 
-            _logger.LogInformation($"[GetGamesAsync] Getting games from {request.Url}");
+            _logger.LogDebug($"[GetGamesAsync] Getting games from {request.Url}");
 
             var responseStream = await _httpClient.Get(request).ConfigureAwait(false);
             var containerObject = await _jsonSerializer.DeserializeFromStreamAsync(responseStream,
@@ -105,7 +105,7 @@ namespace Jellyfin.Channels.LazyMan.GameApi
                 }
             }
 
-            _logger.LogInformation(_jsonSerializer.SerializeToString(games));
+            _logger.LogDebug(_jsonSerializer.SerializeToString(games));
             return games;
         }
     }

@@ -72,9 +72,9 @@ namespace Jellyfin.Channels.LazyMan
         
         public Task<DynamicImageResponse> GetChannelImage(ImageType type, CancellationToken cancellationToken)
         {
-            _logger.LogInformation("[LazyMan] GetChannelImage {0}",
+            _logger.LogDebug("[LazyMan] GetChannelImage {0}",
                 GetType().Namespace + ".Images.LM.png");
-            switch (type)
+             switch (type)
             {
                 case ImageType.Primary:
                 case ImageType.Thumb:
@@ -103,7 +103,7 @@ namespace Jellyfin.Channels.LazyMan
                
         public Task<ChannelItemResult> GetChannelItems(InternalChannelItemQuery query, CancellationToken cancellationToken)
         {
-            _logger.LogInformation($"[GetChannelItems] Searching ID: {query.FolderId}");
+            _logger.LogDebug($"[GetChannelItems] Searching ID: {query.FolderId}");
 
             
             /*
@@ -154,13 +154,13 @@ namespace Jellyfin.Channels.LazyMan
 
         private async Task<List<Game>> GetGameListAsync(string sport, string date)
         {
-            _logger.LogInformation($"[GetGameList] Getting games for {sport} on {date}");
+            _logger.LogDebug($"[GetGameList] Getting games for {sport} on {date}");
             
             List<Game> gameList;
             var cacheKey = $"{sport}_{date}";
             if (!_gameCache.TryGetValue(cacheKey, out var cacheItem))
             {
-                _logger.LogInformation($"[GetGameList] Cache miss for {sport} on {date}");
+                _logger.LogDebug($"[GetGameList] Cache miss for {sport} on {date}");
                 
                 // not in cache, populate cache and return
                 StatsApi statsApi;                
@@ -185,7 +185,7 @@ namespace Jellyfin.Channels.LazyMan
             }
             else
             {
-                _logger.LogInformation($"[GetGameList] Cache hit for {sport} on {date}");
+                _logger.LogDebug($"[GetGameList] Cache hit for {sport} on {date}");
                 gameList = cacheItem.Value;
             }
 
@@ -199,7 +199,7 @@ namespace Jellyfin.Channels.LazyMan
         /// <returns></returns>
         private Task<ChannelItemResult> GetSportFolders()
         {
-            _logger.LogInformation("[GetSportFolders] Get Sport Folders");
+            _logger.LogDebug("[GetSportFolders] Get Sport Folders");
 
             var pingTestDomains = new[]
             {
@@ -248,7 +248,7 @@ namespace Jellyfin.Channels.LazyMan
             var today = DateTime.Today;
             const int daysBack = 5;
 
-            _logger.LogInformation($"[GetDateFolders] Sport: {sport}, {today:yyyyMMdd}");
+            _logger.LogDebug($"[GetDateFolders] Sport: {sport}, {today:yyyyMMdd}");
             
             return Task.FromResult(new ChannelItemResult
             {
@@ -275,7 +275,7 @@ namespace Jellyfin.Channels.LazyMan
         /// <exception cref="ArgumentOutOfRangeException"></exception>
         private async Task<ChannelItemResult> GetGameFolders(string sport, string date)
         {
-            _logger.LogInformation($"[GetGameFolders] Sport: {sport}, Date: {date}");
+            _logger.LogDebug($"[GetGameFolders] Sport: {sport}, Date: {date}");
             
             var gameList = await GetGameListAsync(sport, date).ConfigureAwait(false);
             if(gameList == null)
@@ -302,7 +302,7 @@ namespace Jellyfin.Channels.LazyMan
         /// <returns></returns>
         private async Task<ChannelItemResult> GetFeedFolders(string sport, string date, string gameId)
         {
-            _logger.LogInformation($"[GetFeedFolders] Sport: {sport}, Date: {date}, GameId: {gameId}");
+            _logger.LogDebug($"[GetFeedFolders] Sport: {sport}, Date: {date}, GameId: {gameId}");
             
             var gameList = await GetGameListAsync(sport, date).ConfigureAwait(false);
             if(gameList == null)
@@ -325,7 +325,7 @@ namespace Jellyfin.Channels.LazyMan
                 };
 
             var json = _jsonSerializer.SerializeToString(foundGame);
-            _logger.LogInformation($"[GetFeedFolders] Found Game: {json}");
+            _logger.LogDebug($"[GetFeedFolders] Found Game: {json}");
             
             return new ChannelItemResult
             {
@@ -351,7 +351,7 @@ namespace Jellyfin.Channels.LazyMan
         /// <returns></returns>
         private async Task<ChannelItemResult> GetQualityItems(string sport, string date, string gameId, string feedId)
         {
-            _logger.LogInformation($"[GetQualityItems] Sport: {sport}, Date: {date}, GameId: {gameId}, FeedId: {feedId}");
+            _logger.LogDebug($"[GetQualityItems] Sport: {sport}, Date: {date}, GameId: {gameId}, FeedId: {feedId}");
             
             var gameList = await GetGameListAsync(sport, date).ConfigureAwait(false);
             if(gameList == null)
