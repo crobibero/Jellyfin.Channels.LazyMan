@@ -39,7 +39,7 @@ namespace Jellyfin.Channels.LazyMan
             _logger = logger;
             
             _nhlStatsApi = new StatsApi(httpClient, _logger, jsonSerializer, "nhl");
-            _mlbStatsApi = new StatsApi(httpClient, _logger, jsonSerializer, "mlb");
+            _mlbStatsApi = new StatsApi(httpClient, _logger, jsonSerializer, "MLB");
             
             _powerSportsApi = new PowerSportsApi(httpClient, _logger);
             
@@ -125,6 +125,8 @@ namespace Jellyfin.Channels.LazyMan
             {
                 return GetSportFolders();
             }
+
+            _logger.LogDebug("[GetChannelItems] Current Search Key: {0}", query.FolderId);
             
             // Split parts to see how deep we are
             var querySplit = query.FolderId.Split(new[] {'_'}, StringSplitOptions.RemoveEmptyEntries);
@@ -226,7 +228,7 @@ namespace Jellyfin.Channels.LazyMan
 
             info.Add(new ChannelItemInfo
             {
-                Id = "mlb",
+                Id = "MLB",
                 Name = "MLB",
                 Type = ChannelItemType.Folder
             });
@@ -371,19 +373,46 @@ namespace Jellyfin.Channels.LazyMan
 
             var itemInfoList = new List<ChannelItemInfo>();
 
+            
+            var streamBaseUrl = await _powerSportsApi.GetPlaylistUrlAsync(
+                sport,
+                gameDateTime,
+                feedId,
+                PluginConfiguration.Cdn
+            ).ConfigureAwait(false);
+
+            if (streamBaseUrl == null)
+            {
+                return new ChannelItemResult
+                {
+                    Items = new List<ChannelItemInfo>
+                    {
+                        new ChannelItemInfo
+                        {
+                            Id = $"{sport}_{date}_{gameId}_{feedId}_null",
+                            Name = "Game not available.",
+                            ContentType = ChannelMediaContentType.Clip,
+                            Type = ChannelItemType.Media,
+                            MediaType = ChannelMediaType.Photo
+                        }
+                    },
+                    TotalRecordCount = 1
+                };
+            }
+            
             foreach (var quality in PluginConfiguration.FeedQualities)
             {
                 var id = $"{sport}_{date}_{gameId}_{feedId}_{quality.Key}";
 
-                var streamUrl = await _powerSportsApi.GetPlaylistUrlAsync(
-                    sport,
-                    gameDateTime,
-                    feedId,
-                    PluginConfiguration.Cdn,
-                    quality.Value.File,
-                    foundGame.State
-                ).ConfigureAwait(false);
-
+                // Find index of last file
+                var lastIndex = streamBaseUrl.LastIndexOf('/');
+            
+                // Remove file, append quality file
+                var streamUrl = streamBaseUrl.Substring(0, lastIndex) + '/' + quality;
+            
+                // Format string for current stream
+                streamUrl = string.Format(streamUrl, foundGame.State == "In Progress" ? "slide" : "complete-trimmed");
+                
                 var itemInfo = new ChannelItemInfo
                 {
                     Id = id,

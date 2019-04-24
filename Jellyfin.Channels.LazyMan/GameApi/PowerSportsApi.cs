@@ -18,8 +18,7 @@ namespace Jellyfin.Channels.LazyMan.GameApi
             _logger = logger;
         }
 
-        public async Task<string> GetPlaylistUrlAsync(string league, DateTime date, string mediaId, string cdn,
-            string quality, string state)
+        public async Task<string> GetPlaylistUrlAsync(string league, DateTime date, string mediaId, string cdn)
         {
             var endpoint = $"https://{{0}}/getM3U8.php?league={league}&date={date:yyyy-MM-dd}&id={mediaId}&cdn={cdn}";
             
@@ -71,15 +70,6 @@ namespace Jellyfin.Channels.LazyMan.GameApi
                 }
             }
             
-            // Find index of last file
-            var lastIndex = url.LastIndexOf('/');
-            
-            // Remove file, append quality file
-            url = url.Substring(0, lastIndex) + '/' + quality;
-            
-            // Format string for current stream
-            url = string.Format(url, state == "In Progress" ? "slide" : "complete-trimmed");
-
             return url;
         }
     }

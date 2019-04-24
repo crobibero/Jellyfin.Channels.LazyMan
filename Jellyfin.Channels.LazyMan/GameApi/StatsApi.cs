@@ -93,7 +93,7 @@ namespace Jellyfin.Channels.LazyMan.GameApi
                             tmp.Feeds.Add(
                                 new Feed
                                 {
-                                    Id = item.MediaPlaybackId,
+                                    Id = item.MediaPlaybackId ?? item.Id,
                                     FeedType = item.MediaFeedType,
                                     CallLetters = item.CallLetters
                                 }
