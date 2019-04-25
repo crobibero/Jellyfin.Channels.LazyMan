@@ -18,11 +18,11 @@ namespace Jellyfin.Channels.LazyMan.GameApi
 
 
         private readonly IHttpClient _httpClient;
-        private readonly ILogger _logger;
+        private readonly ILogger<LazyManChannel> _logger;
         private readonly IJsonSerializer _jsonSerializer;
         private readonly string _gameType;
         
-        public StatsApi(IHttpClient httpClient, ILogger logger, IJsonSerializer jsonSerializer, string gameType)
+        public StatsApi(IHttpClient httpClient, ILogger<LazyManChannel> logger, IJsonSerializer jsonSerializer, string gameType)
         {
             _httpClient = httpClient;
             _logger = logger;

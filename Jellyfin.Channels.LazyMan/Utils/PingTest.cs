@@ -12,7 +12,7 @@ namespace Jellyfin.Channels.LazyMan.Utils
          * playback.svcs.mlb.com
          */
         
-        public static bool IsMatch(string testHost, ILogger logger)
+        public static bool IsMatch(string testHost, ILogger<LazyManChannel> logger)
         {
             var validIp = Dns.GetHostAddresses(PluginConfiguration.M3U8Url)[0];
             var testIp = Dns.GetHostAddresses(testHost)[0];
