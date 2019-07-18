@@ -11,17 +11,18 @@ namespace Jellyfin.Channels.LazyMan.GameApi
     {
         private readonly IHttpClient _httpClient;
         private readonly ILogger<LazyManChannel> _logger;
-        
+
         public PowerSportsApi(IHttpClient httpClient, ILogger<LazyManChannel> logger)
         {
             _httpClient = httpClient;
             _logger = logger;
         }
 
-        public async Task<(bool Status, string Response)> GetPlaylistUrlAsync(string league, DateTime date, string mediaId, string cdn)
+        public async Task<(bool Status, string Response)> GetPlaylistUrlAsync(string league, DateTime date,
+            string mediaId, string cdn)
         {
             var endpoint = $"https://{{0}}/getM3U8.php?league={league}&date={date:yyyy-MM-dd}&id={mediaId}&cdn={cdn}";
-            
+
             var request = new HttpRequestOptions
             {
                 Url = string.Format(endpoint, PluginConfiguration.M3U8Url),
@@ -29,7 +30,8 @@ namespace Jellyfin.Channels.LazyMan.GameApi
                 {
                     // Requires a User-Agent header
                     {"User-Agent", "Mozilla/5.0 Gecko Firefox"}
-                }
+                },
+                LogRequest = false
             };
 
             _logger.LogDebug($"[GetStreamUrlAsync] Getting stream url from: {endpoint}");
@@ -52,7 +54,7 @@ namespace Jellyfin.Channels.LazyMan.GameApi
                 _logger.LogWarning("[GetStreamUrlAsync] Response contains Not!");
                 return (false, url);
             }
-                
+
 
             // url expired
             if (url.Contains("exp="))
@@ -66,10 +68,10 @@ namespace Jellyfin.Channels.LazyMan.GameApi
                 if (expiresOn < currently)
                 {
                     _logger.LogWarning("[GetStreamUrlAsync] Stream URL is expired.");
-                    return (false, "Stream URL is expired");   
+                    return (false, "Stream URL is expired");
                 }
             }
-            
+
             return (true, url);
         }
     }
