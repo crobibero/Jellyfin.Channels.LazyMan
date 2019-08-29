@@ -21,8 +21,9 @@ namespace Jellyfin.Channels.LazyMan.GameApi
         private readonly ILogger<LazyManChannel> _logger;
         private readonly IJsonSerializer _jsonSerializer;
         private readonly string _gameType;
-        
-        public StatsApi(IHttpClient httpClient, ILogger<LazyManChannel> logger, IJsonSerializer jsonSerializer, string gameType)
+
+        public StatsApi(IHttpClient httpClient, ILogger<LazyManChannel> logger, IJsonSerializer jsonSerializer,
+            string gameType)
         {
             _httpClient = httpClient;
             _logger = logger;
@@ -49,13 +50,13 @@ namespace Jellyfin.Channels.LazyMan.GameApi
 
             request.Url = string.Format(request.Url, inputDate.ToString("yyyy-MM-dd"));
 
-            _logger.LogDebug($"[GetGamesAsync] Getting games from {request.Url}");
+            _logger.LogDebug("[GetGamesAsync] Getting games from {0}", request.Url);
 
             var responseStream = await _httpClient.Get(request).ConfigureAwait(false);
             var containerObject = await _jsonSerializer.DeserializeFromStreamAsync(responseStream,
                 typeof(StatsApiContainer)).ConfigureAwait(false);
             var container = (StatsApiContainer) containerObject;
-            return ContainerToGame(container); 
+            return ContainerToGame(container);
         }
 
         private List<Game> ContainerToGame(StatsApiContainer container)
@@ -72,35 +73,33 @@ namespace Jellyfin.Channels.LazyMan.GameApi
                         GameDateTime = game.GameDate,
                         HomeTeam = new Team
                         {
-                            Name = game.Teams.Home.Team.Name, 
+                            Name = game.Teams.Home.Team.Name,
                             Abbreviation = game.Teams.Home.Team.Abbreviation
                         },
                         AwayTeam = new Team
                         {
-                            Name = game.Teams.Away.Team.Name, 
+                            Name = game.Teams.Away.Team.Name,
                             Abbreviation = game.Teams.Away.Team.Abbreviation
                         },
                         Feeds = new List<Feed>(),
                         State = game.Status.DetailedState
                     };
-                    
+
                     foreach (var epg in game.Content.Media.Epg)
                     {
-                        if (!epg.Title.StartsWith(_gameType, StringComparison.OrdinalIgnoreCase))
-                            continue;
                         foreach (var item in epg.Items)
-                        {   
+                        {
                             tmp.Feeds.Add(
                                 new Feed
                                 {
                                     Id = item.MediaPlaybackId ?? item.Id,
-                                    FeedType = item.MediaFeedType,
+                                    FeedType = epg.Title + " - " + item.MediaFeedType,
                                     CallLetters = item.CallLetters
                                 }
                             );
                         }
                     }
-                    
+
                     games.Add(tmp);
                 }
             }

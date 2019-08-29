@@ -34,11 +34,11 @@ namespace Jellyfin.Channels.LazyMan.GameApi
                 LogRequest = false
             };
 
-            _logger.LogDebug($"[GetStreamUrlAsync] Getting stream url from: {endpoint}");
+            _logger.LogDebug("[LazyMan][GetStreamUrlAsync] Getting stream url from: {0}", endpoint);
 
             var response = await _httpClient.GetResponse(request).ConfigureAwait(false);
 
-            _logger.LogDebug($"[GetStreamUrlAsync] ResponseCode: {response.StatusCode}");
+            _logger.LogDebug("[LazyMan][GetStreamUrlAsync] ResponseCode: {0}", response.StatusCode);
 
             string url;
             using (var reader = new StreamReader(response.Content))
@@ -46,12 +46,12 @@ namespace Jellyfin.Channels.LazyMan.GameApi
                 url = await reader.ReadToEndAsync().ConfigureAwait(false);
             }
 
-            _logger.LogDebug($"[GetStreamUrlAsync] Response: {url}");
+            _logger.LogDebug("[LazyMan][GetStreamUrlAsync] Response: {0}", url);
 
             // stream not ready yet
             if (url.Contains("Not"))
             {
-                _logger.LogWarning("[GetStreamUrlAsync] Response contains Not!");
+                _logger.LogWarning("[LazyMan][GetStreamUrlAsync] Response contains Not!");
                 return (false, url);
             }
 
@@ -67,7 +67,7 @@ namespace Jellyfin.Channels.LazyMan.GameApi
                 var currently = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() / 1000;
                 if (expiresOn < currently)
                 {
-                    _logger.LogWarning("[GetStreamUrlAsync] Stream URL is expired.");
+                    _logger.LogWarning("[LazyMan][GetStreamUrlAsync] Stream URL is expired.");
                     return (false, "Stream URL is expired");
                 }
             }
