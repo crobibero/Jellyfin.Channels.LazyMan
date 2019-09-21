@@ -21,7 +21,7 @@ using Microsoft.Extensions.Logging;
 
 namespace Jellyfin.Channels.LazyMan
 {
-    public class LazyManChannel : IChannel, IHasCacheKey
+    public class LazyManChannel : IChannel, IHasCacheKey, IRequiresMediaInfoCallback
     {
         private readonly ILogger<LazyManChannel> _logger;
         
@@ -391,17 +391,6 @@ namespace Jellyfin.Channels.LazyMan
             foreach (var quality in PluginConfiguration.FeedQualities)
             {
                 var id = $"{sport}_{date}_{gameId}_{feedId}_{quality.Key}";
-
-                // Find index of last file
-                var lastIndex = response.LastIndexOf('/');
-            
-                // Remove file, append quality file
-                var streamUrl = response.Substring(0, lastIndex) + '/' + quality.Value.File;
-            
-                // Format string for current stream
-                streamUrl = string.Format(streamUrl, foundGame.State == "In Progress" ? "slide" : "complete-trimmed");
-                
-                _logger.LogDebug("[LazyMan][GetQualityItems] Stream URL: {0}", streamUrl);
                 
                 var itemInfo = new ChannelItemInfo
                 {
@@ -409,17 +398,7 @@ namespace Jellyfin.Channels.LazyMan
                     Name = quality.Value.Title,
                     ContentType = ChannelMediaContentType.Movie,
                     Type = ChannelItemType.Media,
-                    MediaType = ChannelMediaType.Video,
-                    MediaSources = new List<MediaSourceInfo>
-                    {
-                        new MediaSourceInfo
-                        {
-                            Path = streamUrl,
-                            Protocol = MediaProtocol.Http,
-                            Id = id,
-                            Bitrate = quality.Value.Bitrate
-                        }
-                    },
+                    MediaType = ChannelMediaType.Video, 
                     IsLiveStream = true
                 };
 
@@ -437,6 +416,61 @@ namespace Jellyfin.Channels.LazyMan
         {
             // Never cache, always return new value
             return DateTime.UtcNow.Ticks.ToString();
+        }
+        
+        public async Task<IEnumerable<MediaSourceInfo>> GetChannelItemMediaInfo(string id, CancellationToken cancellationToken)
+        {
+            var split = id.Split(new[] {'_'}, StringSplitOptions.RemoveEmptyEntries);
+            string sport = split[0],
+                date = split[1],
+                gameId = split[2],
+                feedId = split[3],
+                qualityKey = split[4];
+            
+            var gameList = await GetGameListAsync(sport, date).ConfigureAwait(false);
+            if (gameList == null)
+                return Enumerable.Empty<MediaSourceInfo>();
+
+            // Locate game
+            var foundGame = gameList.FirstOrDefault(g => g.GameId == gameId);
+            if(foundGame == null)
+                return Enumerable.Empty<MediaSourceInfo>();
+
+            // Locate feed
+            var foundFeed = foundGame.Feeds.FirstOrDefault(f => f.Id == feedId);
+            if(foundFeed == null)
+                return Enumerable.Empty<MediaSourceInfo>();
+            
+            var gameDateTime = DateTime.ParseExact(date, "yyyyMMdd", CultureInfo.CurrentCulture);
+
+            var (_, file, bitrate) = PluginConfiguration.FeedQualities[qualityKey];
+            
+            var (_, response) = await _powerSportsApi.GetPlaylistUrlAsync(
+                sport,
+                gameDateTime,
+                feedId,
+                PluginConfiguration.Cdn
+            ).ConfigureAwait(false);
+            
+            // Find index of last file
+            var lastIndex = response.LastIndexOf('/');
+            
+            // Remove file, append quality file
+            var streamUrl = response.Substring(0, lastIndex) + '/' + file;
+
+            // Format string for current stream
+            streamUrl = string.Format(streamUrl, foundGame.State == "In Progress" ? "slide" : "complete-trimmed");
+
+            return new List<MediaSourceInfo>
+            {
+                new MediaSourceInfo
+                {
+                    Path = streamUrl,
+                    Protocol = MediaProtocol.Http,
+                    Id = id,
+                    Bitrate = bitrate
+                }
+            };
         }
     }
 }
