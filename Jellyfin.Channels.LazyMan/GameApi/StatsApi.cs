@@ -85,20 +85,34 @@ namespace Jellyfin.Channels.LazyMan.GameApi
                         State = game.Status.DetailedState
                     };
 
-                    foreach (var epg in game.Content.Media.Epg)
+                    if (game.Content.Media != null)
                     {
-                        foreach (var item in epg.Items)
+                        foreach (var epg in game.Content.Media.Epg)
                         {
-                            tmp.Feeds.Add(
-                                new Feed
-                                {
-                                    Id = item.MediaPlaybackId ?? item.Id,
-                                    FeedType = epg.Title + " - " + item.MediaFeedType,
-                                    CallLetters = item.CallLetters
-                                }
-                            );
+                            foreach (var item in epg.Items)
+                            {
+                                tmp.Feeds.Add(
+                                    new Feed
+                                    {
+                                        Id = item.MediaPlaybackId ?? item.Id,
+                                        FeedType = epg.Title + " - " + item.MediaFeedType,
+                                        CallLetters = item.CallLetters
+                                    }
+                                );
+                            }
                         }
                     }
+                    else
+                    {
+                        tmp.Feeds.Add(
+                            new Feed
+                            {
+                                Id = "nofeed",
+                                FeedType = "No Feed Available",
+                                CallLetters = string.Empty
+                            });
+                    }
+
 
                     games.Add(tmp);
                 }

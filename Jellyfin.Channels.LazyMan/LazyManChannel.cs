@@ -118,7 +118,7 @@ namespace Jellyfin.Channels.LazyMan
             // Split parts to see how deep we are
             var querySplit = query.FolderId.Split(new[] {'_'}, StringSplitOptions.RemoveEmptyEntries);
             
-            switch (querySplit.Length - 1)
+            switch (querySplit.Length)
             {
                 case 0:
                     // List sports
@@ -200,7 +200,7 @@ namespace Jellyfin.Channels.LazyMan
             var info = pingTestDomains.Where(domain => !PingTest.IsMatch(domain, _logger))
                 .Select(domain => new ChannelItemInfo
                 {
-                    Id = $"{domain}_{Guid.NewGuid()}", 
+                    Id = $"{domain}", 
                     Name = $"{domain} IP ERROR",
                     Type = ChannelItemType.Folder
                 })
@@ -208,14 +208,14 @@ namespace Jellyfin.Channels.LazyMan
 
             info.Add(new ChannelItemInfo
             {
-                Id = $"nhl_{Guid.NewGuid()}",
+                Id = "nhl",
                 Name = "NHL",
                 Type = ChannelItemType.Folder
             });
 
             info.Add(new ChannelItemInfo
             {
-                Id = $"MLB_{Guid.NewGuid()}",
+                Id = "MLB",
                 Name = "MLB",
                 Type = ChannelItemType.Folder
             });
@@ -246,7 +246,7 @@ namespace Jellyfin.Channels.LazyMan
                     .Select(date =>
                         new ChannelItemInfo
                         {
-                            Id = sport + "_" + date.ToString("yyyyMMdd") + "_" + Guid.NewGuid(),
+                            Id = sport + "_" + date.ToString("yyyyMMdd"),
                             Name = date.ToString("d", CultureInfo.CurrentCulture),
                             Type = ChannelItemType.Folder
                         })
@@ -274,7 +274,7 @@ namespace Jellyfin.Channels.LazyMan
             {
                 Items = gameList.Select(game => new ChannelItemInfo
                 {
-                    Id = $"{sport}_{date}_{game.GameId}_{Guid.NewGuid()}",
+                    Id = $"{sport}_{date}_{game.GameId}",
                     Name = $"{game.HomeTeam.Name} vs {game.AwayTeam.Name}",
                     Type = ChannelItemType.Folder
                 }).ToList(),
@@ -320,7 +320,7 @@ namespace Jellyfin.Channels.LazyMan
             {
                 Items = foundGame.Feeds.Select(feed => new ChannelItemInfo
                 {
-                    Id = $"{sport}_{date}_{gameId}_{feed.Id}_{Guid.NewGuid()}",
+                    Id = $"{sport}_{date}_{gameId}_{feed.Id}",
                     Name = string.IsNullOrEmpty(feed.CallLetters)
                         ? feed.FeedType
                         : $"{feed.CallLetters} ({feed.FeedType})",
@@ -390,7 +390,7 @@ namespace Jellyfin.Channels.LazyMan
             
             foreach (var quality in PluginConfiguration.FeedQualities)
             {
-                var id = $"{sport}_{date}_{gameId}_{feedId}_{quality.Key}_{Guid.NewGuid()}";
+                var id = $"{sport}_{date}_{gameId}_{feedId}_{quality.Key}";
 
                 // Find index of last file
                 var lastIndex = response.LastIndexOf('/');
