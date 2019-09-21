@@ -49,7 +49,7 @@ namespace Jellyfin.Channels.LazyMan
         
         public string Name => Plugin.Instance.Name;
         public string Description => Plugin.Instance.Description;
-        public string DataVersion => "2";
+        public string DataVersion => "5";
         public string HomePageUrl => "https://reddit.com/r/LazyMan";
         public ChannelParentalRating ParentalRating => ChannelParentalRating.GeneralAudience;
         public bool IsEnabledFor(string userId) => true;
