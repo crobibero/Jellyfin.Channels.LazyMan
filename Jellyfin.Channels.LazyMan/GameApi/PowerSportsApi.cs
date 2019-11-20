@@ -30,8 +30,7 @@ namespace Jellyfin.Channels.LazyMan.GameApi
                 {
                     // Requires a User-Agent header
                     {"User-Agent", "Mozilla/5.0 Gecko Firefox"}
-                },
-                LogRequest = false
+                }
             };
 
             _logger.LogDebug("[LazyMan][GetStreamUrlAsync] Getting stream url from: {0}", endpoint);

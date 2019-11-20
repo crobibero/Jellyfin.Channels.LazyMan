@@ -468,7 +468,8 @@ namespace Jellyfin.Channels.LazyMan
                     Path = streamUrl,
                     Protocol = MediaProtocol.Http,
                     Id = id,
-                    Bitrate = bitrate
+                    Bitrate = bitrate,
+                    SupportsProbing = false
                 }
             };
         }
