@@ -459,7 +459,7 @@ namespace Jellyfin.Channels.LazyMan
             var streamUrl = response.Substring(0, lastIndex) + '/' + file;
 
             // Format string for current stream
-            streamUrl = string.Format(streamUrl, foundGame.State == "In Progress" ? "slide" : "complete-trimmed");
+            streamUrl = string.Format(streamUrl, foundGame.State == "Final" ? "complete-trimmed" : "slide");
 
             return new List<MediaSourceInfo>
             {
