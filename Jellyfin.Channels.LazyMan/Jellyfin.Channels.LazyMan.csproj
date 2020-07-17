@@ -1,9 +1,9 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup> 
-        <AssemblyVersion>8.0.0.0</AssemblyVersion> 
-        <FileVersion>8.0.0.0</FileVersion> 
-        <TargetFramework>netstandard2.0</TargetFramework> 
+        <AssemblyVersion>9.0.0.0</AssemblyVersion> 
+        <FileVersion>9.0.0.0</FileVersion> 
+        <TargetFramework>netstandard2.1</TargetFramework> 
     </PropertyGroup>
 
     <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
@@ -11,8 +11,8 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <PackageReference Include="Jellyfin.Controller" Version="10.4.1" />
-      <PackageReference Include="System.Memory" Version="4.5.3" />
+      <PackageReference Include="Jellyfin.Controller" Version="10.*-*" />
+      <PackageReference Include="System.Memory" Version="4.5.*" />
     </ItemGroup>
 
     <ItemGroup>
