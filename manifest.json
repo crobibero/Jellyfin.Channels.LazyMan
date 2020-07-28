@@ -1,0 +1,20 @@
+[
+  {
+    "guid": "22e6a5be-b134-4a8e-9413-38249a891c9e",
+    "name": "LazyMan",
+    "description": "LazyMan plugin for Jellyfin",
+    "overview": "Play NHL and MLB games through Jellyfin",
+    "owner": "crobibero",
+    "category": "Channels",
+    "versions": [
+      {
+        "version": "9.0.0.0",
+        "changelog": "10.6 compatibility",
+        "targetAbi": "10.6.0",
+        "sourceUrl": "https://github.com/crobibero/Jellyfin.Channels.LazyMan/releases/download/v9.0.0/Jellyfin.Channels.LazyMan_9.0.0.zip",
+        "checksum": "31fb49d75626dc778c26d912e2ac5fbe",
+        "timestamp": "2020-07-28T12:12:22Z"
+      }
+    ]
+  }
+  ]
