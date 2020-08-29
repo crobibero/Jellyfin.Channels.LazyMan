@@ -1,15 +1,14 @@
 name: Mirroring
 
-on: [push, delete]
+on: [push]
 
 jobs:
   to_gitea:
     runs-on: ubuntu-18.04
     steps:                                              
     - uses: actions/checkout@v1
-    - uses: pixta-dev/repository-mirroring-action@v1
+    - uses: spyoungtech/mirror-action@master
       with:
-        target_repo_url:
-          git@git.codyrobibero.dev:12222/crobibero/Jellyfin.Channels.LazyMan.git
-        ssh_private_key:                                
-          ${{ secrets.GITEA_SSH_PRIVATE_KEY }}
+        REMOTE: 'ssh://git@git.codyrobibero.dev:12222/crobibero/Jellyfin.Channels.LazyMan.git'
+        GIT_SSH_PRIVATE_KEY: ${{ secrets.GIT_SSH_PRIVATE_KEY }}
+        GIT_SSH_KNOWN_HOSTS: ${{ secrets.GIT_SSH_KNOWN_HOSTS }}
