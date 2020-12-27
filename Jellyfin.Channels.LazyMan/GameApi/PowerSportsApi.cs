@@ -1,5 +1,5 @@
 using System;
-using System.IO;
+using System.Net.Http;
 using System.Threading.Tasks;
 using Jellyfin.Channels.LazyMan.Configuration;
 using MediaBrowser.Common.Net;
@@ -7,43 +7,43 @@ using Microsoft.Extensions.Logging;
 
 namespace Jellyfin.Channels.LazyMan.GameApi
 {
+    /// <summary>
+    /// Powersports Api.
+    /// </summary>
     public class PowerSportsApi
     {
-        private readonly IHttpClient _httpClient;
-        private readonly ILogger<LazyManChannel> _logger;
+        private readonly IHttpClientFactory _httpClientFactory;
+        private readonly ILogger<PowerSportsApi> _logger;
 
-        public PowerSportsApi(IHttpClient httpClient, ILogger<LazyManChannel> logger)
+        /// <summary>
+        /// Initializes a new instance of the <see cref="PowerSportsApi"/> class.
+        /// </summary>
+        /// <param name="httpClientFactory">Instance of the <see cref="IHttpClientFactory"/> interface.</param>
+        /// <param name="logger">Instance of the <see cref="ILogger{PowerSportsApi}"/> interface.</param>
+        public PowerSportsApi(IHttpClientFactory httpClientFactory, ILogger<PowerSportsApi> logger)
         {
-            _httpClient = httpClient;
+            _httpClientFactory = httpClientFactory;
             _logger = logger;
         }
 
-        public async Task<(bool Status, string Response)> GetPlaylistUrlAsync(string league, DateTime date,
-            string mediaId, string cdn)
+        /// <summary>
+        /// Gets the playlist url.
+        /// </summary>
+        /// <param name="league">Sport league.</param>
+        /// <param name="date">Game date.</param>
+        /// <param name="mediaId">Media id.</param>
+        /// <param name="cdn">cdn to use.</param>
+        /// <returns>The response status and response.</returns>
+        public async Task<(bool Status, string Response)> GetPlaylistUrlAsync(
+            string league,
+            DateTime date,
+            string mediaId,
+            string cdn)
         {
-            var endpoint = $"https://{{0}}/getM3U8.php?league={league}&date={date:yyyy-MM-dd}&id={mediaId}&cdn={cdn}";
+            var endpoint = $"https://{PluginConfiguration.M3U8Url}/getM3U8.php?league={league}&date={date:yyyy-MM-dd}&id={mediaId}&cdn={cdn}";
 
-            var request = new HttpRequestOptions
-            {
-                Url = string.Format(endpoint, PluginConfiguration.M3U8Url),
-                RequestHeaders =
-                {
-                    // Requires a User-Agent header
-                    {"User-Agent", "Mozilla/5.0 Gecko Firefox"}
-                }
-            };
-
-            _logger.LogDebug("[LazyMan][GetStreamUrlAsync] Getting stream url from: {0}", endpoint);
-
-            var response = await _httpClient.GetResponse(request).ConfigureAwait(false);
-
-            _logger.LogDebug("[LazyMan][GetStreamUrlAsync] ResponseCode: {0}", response.StatusCode);
-
-            string url;
-            using (var reader = new StreamReader(response.Content))
-            {
-                url = await reader.ReadToEndAsync().ConfigureAwait(false);
-            }
+            var url = await _httpClientFactory.CreateClient(NamedClient.Default)
+                .GetStringAsync(endpoint);
 
             _logger.LogDebug("[LazyMan][GetStreamUrlAsync] Response: {0}", url);
 
@@ -54,13 +54,12 @@ namespace Jellyfin.Channels.LazyMan.GameApi
                 return (false, url);
             }
 
-
             // url expired
-            if (url.Contains("exp="))
+            if (url.Contains("exp=", StringComparison.OrdinalIgnoreCase))
             {
                 var expLocation = url.IndexOf("exp=", StringComparison.OrdinalIgnoreCase);
                 var expStart = expLocation + 4;
-                var expEnd = url.IndexOf("~", expLocation, StringComparison.OrdinalIgnoreCase);
+                var expEnd = url.IndexOf('~', expLocation);
                 var expStr = url.Substring(expStart, expEnd - expStart);
                 var expiresOn = long.Parse(expStr);
                 var currently = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() / 1000;

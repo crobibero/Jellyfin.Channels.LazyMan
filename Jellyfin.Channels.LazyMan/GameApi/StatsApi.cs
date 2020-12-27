@@ -1,13 +1,19 @@
 using System;
 using System.Collections.Generic;
+using System.Net.Http;
+using System.Net.Http.Json;
+using System.Text.Json;
 using System.Threading.Tasks;
 using Jellyfin.Channels.LazyMan.GameApi.Containers;
+using MediaBrowser.Common.Json;
 using MediaBrowser.Common.Net;
-using MediaBrowser.Model.Serialization;
 using Microsoft.Extensions.Logging;
 
 namespace Jellyfin.Channels.LazyMan.GameApi
 {
+    /// <summary>
+    /// Stats Api.
+    /// </summary>
     public class StatsApi
     {
         private const string NhlLink =
@@ -16,50 +22,59 @@ namespace Jellyfin.Channels.LazyMan.GameApi
         private const string MlbLink =
             "https://statsapi.mlb.com/api/v1/schedule?sportId=1&startDate={0}&endDate={0}&hydrate=team,linescore,game(content(summary,media(epg)))&language=en";
 
-
-        private readonly IHttpClient _httpClient;
+        private readonly IHttpClientFactory _httpClientFactory;
         private readonly ILogger<LazyManChannel> _logger;
-        private readonly IJsonSerializer _jsonSerializer;
         private readonly string _gameType;
+        private readonly JsonSerializerOptions _jsonSerializerOptions = JsonDefaults.GetOptions();
 
-        public StatsApi(IHttpClient httpClient, ILogger<LazyManChannel> logger, IJsonSerializer jsonSerializer,
+        /// <summary>
+        /// Initializes a new instance of the <see cref="StatsApi"/> class.
+        /// </summary>
+        /// <param name="httpClientFactory">Instance of the <see cref="IHttpClientFactory"/> interface.</param>
+        /// <param name="logger">Instance of the <see cref="ILogger{StatsApi}"/> interface..</param>
+        /// <param name="gameType">The game type.</param>
+        public StatsApi(
+            IHttpClientFactory httpClientFactory,
+            ILogger<LazyManChannel> logger,
             string gameType)
         {
-            _httpClient = httpClient;
+            _httpClientFactory = httpClientFactory;
             _logger = logger;
-            _jsonSerializer = jsonSerializer;
             _gameType = gameType;
         }
 
+        /// <summary>
+        /// Get the list of games.
+        /// </summary>
+        /// <param name="inputDate">Date to get games for.</param>
+        /// <returns>The list of games.</returns>
+        /// <exception cref="ArgumentOutOfRangeException">Unknown game type.</exception>
         public async Task<List<Game>> GetGamesAsync(DateTime inputDate)
         {
-            var request = new HttpRequestOptions();
-
+            string? url;
             if (_gameType.Equals("nhl", StringComparison.OrdinalIgnoreCase))
             {
-                request.Url = NhlLink;
+                url = NhlLink;
             }
             else if (_gameType.Equals("mlb", StringComparison.OrdinalIgnoreCase))
             {
-                request.Url = MlbLink;
+                url = MlbLink;
             }
             else
             {
                 throw new ArgumentOutOfRangeException(nameof(_gameType), "Unknown Game Type");
             }
 
-            request.Url = string.Format(request.Url, inputDate.ToString("yyyy-MM-dd"));
+            url = string.Format(url, inputDate.ToString("yyyy-MM-dd"));
 
-            _logger.LogDebug("[GetGamesAsync] Getting games from {0}", request.Url);
+            _logger.LogDebug("[GetGamesAsync] Getting games from {0}", url);
+            var container = await _httpClientFactory.CreateClient(NamedClient.Default)
+                .GetFromJsonAsync<StatsApiContainer>(url, _jsonSerializerOptions);
 
-            var responseStream = await _httpClient.Get(request).ConfigureAwait(false);
-            var containerObject = await _jsonSerializer.DeserializeFromStreamAsync(responseStream,
-                typeof(StatsApiContainer)).ConfigureAwait(false);
-            var container = (StatsApiContainer) containerObject;
-            return ContainerToGame(container);
+            return container == null ? new List<Game>() : ContainerToGame(container);
         }
 
-        private List<Game> ContainerToGame(StatsApiContainer container)
+        private static List<Game> ContainerToGame(StatsApiContainer container)
         {
             var games = new List<Game>();
 
@@ -73,19 +88,19 @@ namespace Jellyfin.Channels.LazyMan.GameApi
                         GameDateTime = game.GameDate,
                         HomeTeam = new Team
                         {
-                            Name = game.Teams.Home.Team.Name,
-                            Abbreviation = game.Teams.Home.Team.Abbreviation
+                            Name = game.Teams?.Home?.Team?.Name,
+                            Abbreviation = game.Teams?.Home?.Team?.Abbreviation
                         },
                         AwayTeam = new Team
                         {
-                            Name = game.Teams.Away.Team.Name,
-                            Abbreviation = game.Teams.Away.Team.Abbreviation
+                            Name = game?.Teams?.Away?.Team?.Name,
+                            Abbreviation = game?.Teams?.Away?.Team?.Abbreviation
                         },
                         Feeds = new List<Feed>(),
-                        State = game.Status.DetailedState
+                        State = game?.Status?.DetailedState
                     };
 
-                    if (game.Content.Media?.Epg != null)
+                    if (game?.Content?.Media?.Epg != null)
                     {
                         foreach (var epg in game.Content.Media.Epg)
                         {
@@ -97,8 +112,7 @@ namespace Jellyfin.Channels.LazyMan.GameApi
                                         Id = item.MediaPlaybackId ?? item.Id,
                                         FeedType = epg.Title + " - " + item.MediaFeedType,
                                         CallLetters = item.CallLetters
-                                    }
-                                );
+                                    });
                             }
                         }
                     }
@@ -113,12 +127,10 @@ namespace Jellyfin.Channels.LazyMan.GameApi
                             });
                     }
 
-
                     games.Add(tmp);
                 }
             }
 
-            _logger.LogDebug(_jsonSerializer.SerializeToString(games));
             return games;
         }
     }
