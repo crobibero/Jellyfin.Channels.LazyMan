@@ -148,10 +148,10 @@ namespace Jellyfin.Channels.LazyMan
                     return GetGameFolders(querySplit[0], querySplit[1]);
                 case 3:
                     // List feeds
-                    return GetFeedFolders(querySplit[0], querySplit[1], querySplit[2]);
+                    return GetFeedFolders(querySplit[0], querySplit[1], int.Parse(querySplit[2]));
                 case 4:
                     // List qualities
-                    return GetQualityItems(querySplit[0], querySplit[1], querySplit[2], querySplit[3]);
+                    return GetQualityItems(querySplit[0], querySplit[1], int.Parse(querySplit[2]), querySplit[3]);
                 default:
                     // Unknown, return empty result
                     return Task.FromResult(new ChannelItemResult());
@@ -307,7 +307,7 @@ namespace Jellyfin.Channels.LazyMan
         /// <param name="date">Selected date.</param>
         /// <param name="gameId">Selected game id.</param>
         /// <returns>The channel item result.</returns>
-        private async Task<ChannelItemResult> GetFeedFolders(string sport, string date, string gameId)
+        private async Task<ChannelItemResult> GetFeedFolders(string sport, string date, int gameId)
         {
             _logger.LogDebug("[LazyMan][GetFeedFolders] Sport: {0}, Date: {1}, GameId: {2}", sport, date, gameId);
 
@@ -357,7 +357,7 @@ namespace Jellyfin.Channels.LazyMan
         /// <param name="gameId">Selected game id.</param>
         /// <param name="feedId">Selected feed id.</param>
         /// <returns>The channel item result.</returns>
-        private async Task<ChannelItemResult> GetQualityItems(string sport, string date, string gameId, string feedId)
+        private async Task<ChannelItemResult> GetQualityItems(string sport, string date, int gameId, string feedId)
         {
             _logger.LogDebug(
                 "[LazyMan][GetQualityItems] Sport: {0}, Date: {1}, GameId: {2}, FeedId: {3}",
@@ -452,9 +452,9 @@ namespace Jellyfin.Channels.LazyMan
             var split = id.Split('_', StringSplitOptions.RemoveEmptyEntries);
             string sport = split[0],
                 date = split[1],
-                gameId = split[2],
                 feedId = split[3],
                 qualityKey = split[4];
+            var gameId = int.Parse(split[2]);
 
             var gameList = await GetGameListAsync(sport, date);
             if (gameList == null)

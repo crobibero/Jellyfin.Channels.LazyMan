@@ -35,7 +35,7 @@ namespace Jellyfin.Channels.LazyMan.GameApi.Containers
         /// <summary>
         /// Gets or sets the game pk.
         /// </summary>
-        public string? GamePk { get; set; }
+        public int? GamePk { get; set; }
 
         /// <summary>
         /// Gets or sets the game date.

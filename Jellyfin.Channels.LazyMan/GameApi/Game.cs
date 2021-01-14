@@ -18,7 +18,7 @@ namespace Jellyfin.Channels.LazyMan.GameApi
         /// <summary>
         /// Gets or sets teh game id.
         /// </summary>
-        public string? GameId { get; set; }
+        public int? GameId { get; set; }
 
         /// <summary>
         /// Gets or sets the list of feeds.
