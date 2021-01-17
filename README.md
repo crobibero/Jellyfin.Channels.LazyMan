@@ -1,10 +1,10 @@
 # Jellyfin.Channels.LazyMan
 
-LazyMan Channel for Jellyfin
+LazyMan (NHLGames) Channel for Jellyfin
 
-Get started with LazyMan at https://reddit.com/r/LazyMan
+Get started with LazyMan at https://github.com/NHLGames/NHLGames
 
-Hostsfile directions: https://www.reddit.com/r/LazyMan/wiki/hostsfile
+Hostsfile directions: https://github.com/NHLGames/NHLGames/wiki/hosts-file#editing-the-hosts-file-with-command-lines
 
 You must edit your hosts file to use this plugin!
 for docker either use `--add-host` or `extra_hosts`
