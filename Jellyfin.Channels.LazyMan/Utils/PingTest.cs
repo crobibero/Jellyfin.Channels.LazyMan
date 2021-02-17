@@ -26,7 +26,7 @@ namespace Jellyfin.Channels.LazyMan.Utils
             var testIp = Dns.GetHostAddresses(testHost)[0];
 
             logger.LogDebug(
-                "[PingTest] Host: {0} ValidIP: {1} HostIP: {2}",
+                "[PingTest] Host: {Host} ValidIP: {ValidIP} HostIP: {HostIP}",
                 testHost,
                 validIp,
                 testIp);

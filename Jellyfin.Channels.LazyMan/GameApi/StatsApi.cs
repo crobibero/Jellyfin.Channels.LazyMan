@@ -23,7 +23,7 @@ namespace Jellyfin.Channels.LazyMan.GameApi
             "https://statsapi.mlb.com/api/v1/schedule?sportId=1&startDate={0}&endDate={0}&hydrate=team,linescore,game(content(summary,media(epg)))&language=en";
 
         private readonly IHttpClientFactory _httpClientFactory;
-        private readonly ILogger<LazyManChannel> _logger;
+        private readonly ILogger<StatsApi> _logger;
         private readonly string _gameType;
         private readonly JsonSerializerOptions _jsonSerializerOptions = JsonDefaults.GetOptions();
 
@@ -35,7 +35,7 @@ namespace Jellyfin.Channels.LazyMan.GameApi
         /// <param name="gameType">The game type.</param>
         public StatsApi(
             IHttpClientFactory httpClientFactory,
-            ILogger<LazyManChannel> logger,
+            ILogger<StatsApi> logger,
             string gameType)
         {
             _httpClientFactory = httpClientFactory;
@@ -67,7 +67,7 @@ namespace Jellyfin.Channels.LazyMan.GameApi
 
             url = string.Format(url, inputDate.ToString("yyyy-MM-dd"));
 
-            _logger.LogDebug("[GetGamesAsync] Getting games from {0}", url);
+            _logger.LogDebug("[GetGamesAsync] Getting games from {Url}", url);
             var container = await _httpClientFactory.CreateClient(NamedClient.Default)
                 .GetFromJsonAsync<StatsApiContainer>(url, _jsonSerializerOptions);
 

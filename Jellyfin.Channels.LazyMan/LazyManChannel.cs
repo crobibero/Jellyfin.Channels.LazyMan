@@ -38,14 +38,15 @@ namespace Jellyfin.Channels.LazyMan
         /// Initializes a new instance of the <see cref="LazyManChannel"/> class.
         /// </summary>
         /// <param name="httpClientFactory">Instance of the <see cref="IHttpClientFactory"/> interface.</param>
-        /// <param name="logger">Instance of the <see cref="ILogger{LazyManChannel}"/> interface.</param>
+        /// <param name="loggerFactory">Instance of the <see cref="ILoggerFactory"/> interface.</param>
         /// <param name="powerSportsApi">Instance of the <see cref="PowerSportsApi"/>.</param>
-        public LazyManChannel(IHttpClientFactory httpClientFactory, ILogger<LazyManChannel> logger, PowerSportsApi powerSportsApi)
+        public LazyManChannel(IHttpClientFactory httpClientFactory, ILoggerFactory loggerFactory, PowerSportsApi powerSportsApi)
         {
-            _logger = logger;
+            _logger = loggerFactory.CreateLogger<LazyManChannel>();
+            var statsApiLogger = loggerFactory.CreateLogger<StatsApi>();
 
-            _nhlStatsApi = new StatsApi(httpClientFactory, _logger, "nhl");
-            _mlbStatsApi = new StatsApi(httpClientFactory, _logger, "MLB");
+            _nhlStatsApi = new StatsApi(httpClientFactory, statsApiLogger, "nhl");
+            _mlbStatsApi = new StatsApi(httpClientFactory, statsApiLogger, "MLB");
             _powerSportsApi = powerSportsApi;
 
             _gameCache = new ConcurrentDictionary<string, CacheItem<List<Game>>>();
@@ -89,7 +90,7 @@ namespace Jellyfin.Channels.LazyMan
         /// <inheritdoc />
         public Task<DynamicImageResponse> GetChannelImage(ImageType type, CancellationToken cancellationToken)
         {
-            _logger.LogDebug("[LazyMan] GetChannelImage {0}", GetType().Namespace + ".Images.LM.png");
+            _logger.LogDebug("[LazyMan] GetChannelImage {ImagePath}", GetType().Namespace + ".Images.LM.png");
             var path = GetType().Namespace + ".Images.LM.png";
             return Task.FromResult(new DynamicImageResponse
             {
@@ -108,7 +109,7 @@ namespace Jellyfin.Channels.LazyMan
         /// <inheritdoc />
         public Task<ChannelItemResult> GetChannelItems(InternalChannelItemQuery query, CancellationToken cancellationToken)
         {
-            _logger.LogDebug("[LazyMan][GetChannelItems] Searching ID: {0}", query.FolderId);
+            _logger.LogDebug("[LazyMan][GetChannelItems] Searching ID: {FolderId}", query.FolderId);
 
             /*
              *    id: {sport}_{date}_{gameId}_{network}_{quality}
@@ -130,7 +131,7 @@ namespace Jellyfin.Channels.LazyMan
                 return GetSportFolders();
             }
 
-            _logger.LogDebug("[LazyMan][GetChannelItems] Current Search Key: {0}", query.FolderId);
+            _logger.LogDebug("[LazyMan][GetChannelItems] Current Search Key: {FolderId}", query.FolderId);
 
             // Split parts to see how deep we are
             var querySplit = query.FolderId.Split('_', StringSplitOptions.RemoveEmptyEntries);
@@ -160,13 +161,13 @@ namespace Jellyfin.Channels.LazyMan
 
         private async Task<List<Game>?> GetGameListAsync(string sport, string date)
         {
-            _logger.LogDebug("[LazyMan][GetGameList] Getting games for {0} on {1}", sport, date);
+            _logger.LogDebug("[LazyMan][GetGameList] Getting games for {Sport} on {Date}", sport, date);
 
             List<Game> gameList;
             var cacheKey = $"{sport}_{date}";
             if (!_gameCache.TryGetValue(cacheKey, out var cacheItem))
             {
-                _logger.LogDebug("[LazyMan][GetGameList] Cache miss for {0} on {1}", sport, date);
+                _logger.LogDebug("[LazyMan][GetGameList] Cache miss for {Sport} on {Date}", sport, date);
 
                 // not in cache, populate cache and return
                 StatsApi statsApi;
@@ -191,7 +192,7 @@ namespace Jellyfin.Channels.LazyMan
             }
             else
             {
-                _logger.LogDebug("[LazyMan][GetGameList] Cache hit for {0} on {1}", sport, date);
+                _logger.LogDebug("[LazyMan][GetGameList] Cache hit for {Sport} on {Date}", sport, date);
                 gameList = cacheItem.Value;
             }
 
@@ -254,7 +255,7 @@ namespace Jellyfin.Channels.LazyMan
             var today = DateTime.Today;
             const int daysBack = 5;
 
-            _logger.LogDebug("[LazyMan][GetDateFolders] Sport: {0}, {1:yyyyMMdd}", sport, today);
+            _logger.LogDebug("[LazyMan][GetDateFolders] Sport: {Sport}, {Today:yyyyMMdd}", sport, today);
 
             return Task.FromResult(new ChannelItemResult
             {
@@ -280,7 +281,7 @@ namespace Jellyfin.Channels.LazyMan
         /// <returns>The channel item result.</returns>
         private async Task<ChannelItemResult> GetGameFolders(string sport, string date)
         {
-            _logger.LogDebug("[LazyMan][GetGameFolders] Sport: {0}, Date: {1}", sport, date);
+            _logger.LogDebug("[LazyMan][GetGameFolders] Sport: {Sport}, Date: {Date}", sport, date);
 
             var gameList = await GetGameListAsync(sport, date);
             if (gameList == null)
@@ -309,7 +310,7 @@ namespace Jellyfin.Channels.LazyMan
         /// <returns>The channel item result.</returns>
         private async Task<ChannelItemResult> GetFeedFolders(string sport, string date, int gameId)
         {
-            _logger.LogDebug("[LazyMan][GetFeedFolders] Sport: {0}, Date: {1}, GameId: {2}", sport, date, gameId);
+            _logger.LogDebug("[LazyMan][GetFeedFolders] Sport: {Sport}, Date: {Date}, GameId: {GameId}", sport, date, gameId);
 
             var gameList = await GetGameListAsync(sport, date);
             if (gameList == null)
@@ -360,7 +361,7 @@ namespace Jellyfin.Channels.LazyMan
         private async Task<ChannelItemResult> GetQualityItems(string sport, string date, int gameId, string feedId)
         {
             _logger.LogDebug(
-                "[LazyMan][GetQualityItems] Sport: {0}, Date: {1}, GameId: {2}, FeedId: {3}",
+                "[LazyMan][GetQualityItems] Sport: {Sport}, Date: {Date}, GameId: {GameId}, FeedId: {FeedId}",
                 sport,
                 date,
                 gameId,

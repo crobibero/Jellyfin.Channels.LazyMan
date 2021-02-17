@@ -45,7 +45,7 @@ namespace Jellyfin.Channels.LazyMan.GameApi
             var url = await _httpClientFactory.CreateClient(NamedClient.Default)
                 .GetStringAsync(endpoint);
 
-            _logger.LogDebug("[LazyMan][GetStreamUrlAsync] Response: {0}", url);
+            _logger.LogDebug("[LazyMan][GetStreamUrlAsync] Response: {Url}", url);
 
             // stream not ready yet
             if (url.Contains("Not"))
@@ -65,7 +65,7 @@ namespace Jellyfin.Channels.LazyMan.GameApi
                 var currently = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() / 1000;
                 if (expiresOn < currently)
                 {
-                    _logger.LogWarning("[LazyMan][GetStreamUrlAsync] Stream URL is expired.");
+                    _logger.LogWarning("[LazyMan][GetStreamUrlAsync] Stream URL is expired");
                     return (false, "Stream URL is expired");
                 }
             }
