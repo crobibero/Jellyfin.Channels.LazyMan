@@ -5,6 +5,7 @@
     "description": "LazyMan plugin for Jellyfin",
     "overview": "Play NHL and MLB games through Jellyfin",
     "owner": "crobibero",
+    "imageUrl": "https://raw.githubusercontent.com/crobibero/Jellyfin.Channels.LazyMan/master/thumbnail.png",
     "category": "Channels",
     "versions": [
       {
