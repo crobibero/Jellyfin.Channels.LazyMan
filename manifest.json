@@ -8,6 +8,14 @@
     "category": "Channels",
     "versions": [
       {
+        "version": "10.0.0.0",
+        "changelog": "10.7 compatibility",
+        "targetAbi": "10.7.0",
+        "sourceUrl": "https://github.com/crobibero/Jellyfin.Channels.LazyMan/releases/download/v10/Jellyfin.Channels.LazyMan_10.0.0.zip",
+        "checksum": "96548eea0a9ae0428afb4b59c78ddbda",
+        "timestamp": "2021-03-10T01:25:19Z"
+      },
+      {
         "version": "9.0.0.0",
         "changelog": "10.6 compatibility",
         "targetAbi": "10.6.0",
