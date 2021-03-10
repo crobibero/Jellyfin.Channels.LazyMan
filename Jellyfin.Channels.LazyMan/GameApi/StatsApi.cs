@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Net.Http;
 using System.Net.Http.Json;
 using System.Text.Json;
@@ -65,11 +66,12 @@ namespace Jellyfin.Channels.LazyMan.GameApi
                 throw new ArgumentOutOfRangeException(nameof(_gameType), "Unknown Game Type");
             }
 
-            url = string.Format(url, inputDate.ToString("yyyy-MM-dd"));
+            url = string.Format(CultureInfo.InvariantCulture,  url, inputDate.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture));
 
             _logger.LogDebug("[GetGamesAsync] Getting games from {Url}", url);
             var container = await _httpClientFactory.CreateClient(NamedClient.Default)
-                .GetFromJsonAsync<StatsApiContainer>(url, _jsonSerializerOptions);
+                .GetFromJsonAsync<StatsApiContainer>(url, _jsonSerializerOptions)
+                .ConfigureAwait(false);
 
             return container == null ? new List<Game>() : ContainerToGame(container);
         }
@@ -82,6 +84,7 @@ namespace Jellyfin.Channels.LazyMan.GameApi
             {
                 foreach (var game in date.Games)
                 {
+                    var feeds = new List<Feed>();
                     var tmp = new Game
                     {
                         GameId = game.GamePk,
@@ -106,7 +109,7 @@ namespace Jellyfin.Channels.LazyMan.GameApi
                         {
                             foreach (var item in epg.Items)
                             {
-                                tmp.Feeds.Add(
+                                feeds.Add(
                                     new Feed
                                     {
                                         Id = item.MediaPlaybackId ?? item.Id,
@@ -118,7 +121,7 @@ namespace Jellyfin.Channels.LazyMan.GameApi
                     }
                     else
                     {
-                        tmp.Feeds.Add(
+                        feeds.Add(
                             new Feed
                             {
                                 Id = "nofeed",
@@ -127,6 +130,7 @@ namespace Jellyfin.Channels.LazyMan.GameApi
                             });
                     }
 
+                    tmp.Feeds = feeds;
                     games.Add(tmp);
                 }
             }

@@ -23,7 +23,7 @@ namespace Jellyfin.Channels.LazyMan.GameApi
         /// <summary>
         /// Gets or sets the list of feeds.
         /// </summary>
-        public List<Feed> Feeds { get; set; } = new ();
+        public IReadOnlyList<Feed> Feeds { get; set; } = Array.Empty<Feed>();
 
         /// <summary>
         /// Gets or sets the home team.

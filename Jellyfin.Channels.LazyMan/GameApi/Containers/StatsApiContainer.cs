@@ -87,13 +87,13 @@ namespace Jellyfin.Channels.LazyMan.GameApi.Containers
         /// Gets or sets the media.
         /// </summary>
         [JsonPropertyName("media")]
-        public Media? Media { get; set; }
+        public MediaContainer? Media { get; set; }
     }
 
     /// <summary>
     /// Media container.
     /// </summary>
-    public class Media
+    public class MediaContainer
     {
         /// <summary>
         /// Gets or sets the list of EPG.

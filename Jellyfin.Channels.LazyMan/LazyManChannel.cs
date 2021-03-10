@@ -149,10 +149,10 @@ namespace Jellyfin.Channels.LazyMan
                     return GetGameFolders(querySplit[0], querySplit[1]);
                 case 3:
                     // List feeds
-                    return GetFeedFolders(querySplit[0], querySplit[1], int.Parse(querySplit[2]));
+                    return GetFeedFolders(querySplit[0], querySplit[1], int.Parse(querySplit[2], CultureInfo.InvariantCulture));
                 case 4:
                     // List qualities
-                    return GetQualityItems(querySplit[0], querySplit[1], int.Parse(querySplit[2]), querySplit[3]);
+                    return GetQualityItems(querySplit[0], querySplit[1], int.Parse(querySplit[2], CultureInfo.InvariantCulture), querySplit[3]);
                 default:
                     // Unknown, return empty result
                     return Task.FromResult(new ChannelItemResult());
@@ -185,7 +185,7 @@ namespace Jellyfin.Channels.LazyMan
                 }
 
                 var gameDate = DateTime.ParseExact(date, "yyyyMMdd", DateTimeFormatInfo.CurrentInfo);
-                gameList = await statsApi.GetGamesAsync(gameDate);
+                gameList = await statsApi.GetGamesAsync(gameDate).ConfigureAwait(false);
 
                 cacheItem = new CacheItem<List<Game>>(cacheKey, gameList, CacheExpireTime, _gameCache);
                 _gameCache.TryAdd(cacheKey, cacheItem);
@@ -264,7 +264,7 @@ namespace Jellyfin.Channels.LazyMan
                     .Select(date =>
                         new ChannelItemInfo
                         {
-                            Id = sport + "_" + date.ToString("yyyyMMdd"),
+                            Id = sport + "_" + date.ToString("yyyyMMdd", CultureInfo.InvariantCulture),
                             Name = date.ToString("d", CultureInfo.CurrentCulture),
                             Type = ChannelItemType.Folder
                         })
@@ -283,7 +283,7 @@ namespace Jellyfin.Channels.LazyMan
         {
             _logger.LogDebug("[LazyMan][GetGameFolders] Sport: {Sport}, Date: {Date}", sport, date);
 
-            var gameList = await GetGameListAsync(sport, date);
+            var gameList = await GetGameListAsync(sport, date).ConfigureAwait(false);
             if (gameList == null)
             {
                 return new ChannelItemResult();
@@ -312,7 +312,7 @@ namespace Jellyfin.Channels.LazyMan
         {
             _logger.LogDebug("[LazyMan][GetFeedFolders] Sport: {Sport}, Date: {Date}, GameId: {GameId}", sport, date, gameId);
 
-            var gameList = await GetGameListAsync(sport, date);
+            var gameList = await GetGameListAsync(sport, date).ConfigureAwait(false);
             if (gameList == null)
             {
                 return new ChannelItemResult();
@@ -367,7 +367,7 @@ namespace Jellyfin.Channels.LazyMan
                 gameId,
                 feedId);
 
-            var gameList = await GetGameListAsync(sport, date);
+            var gameList = await GetGameListAsync(sport, date).ConfigureAwait(false);
             if (gameList == null)
             {
                 return new ChannelItemResult();
@@ -392,10 +392,11 @@ namespace Jellyfin.Channels.LazyMan
             var itemInfoList = new List<ChannelItemInfo>();
 
             var (status, response) = await _powerSportsApi.GetPlaylistUrlAsync(
-                sport,
-                gameDateTime,
-                feedId,
-                PluginConfiguration.Cdn);
+                    sport,
+                    gameDateTime,
+                    feedId,
+                    PluginConfiguration.Cdn)
+                .ConfigureAwait(false);
 
             if (!status)
             {
@@ -444,7 +445,7 @@ namespace Jellyfin.Channels.LazyMan
         public string GetCacheKey(string userId)
         {
             // Never cache, always return new value
-            return DateTime.UtcNow.Ticks.ToString();
+            return DateTime.UtcNow.Ticks.ToString(CultureInfo.InvariantCulture);
         }
 
         /// <inheritdoc />
@@ -455,9 +456,9 @@ namespace Jellyfin.Channels.LazyMan
                 date = split[1],
                 feedId = split[3],
                 qualityKey = split[4];
-            var gameId = int.Parse(split[2]);
+            var gameId = int.Parse(split[2], CultureInfo.InvariantCulture);
 
-            var gameList = await GetGameListAsync(sport, date);
+            var gameList = await GetGameListAsync(sport, date).ConfigureAwait(false);
             if (gameList == null)
             {
                 return Enumerable.Empty<MediaSourceInfo>();
@@ -482,10 +483,11 @@ namespace Jellyfin.Channels.LazyMan
             var (_, file, bitrate) = PluginConfiguration.FeedQualities[qualityKey];
 
             var (_, response) = await _powerSportsApi.GetPlaylistUrlAsync(
-                sport,
-                gameDateTime,
-                feedId,
-                PluginConfiguration.Cdn);
+                    sport,
+                    gameDateTime,
+                    feedId,
+                    PluginConfiguration.Cdn)
+                .ConfigureAwait(false);
 
             // Find index of last file
             var lastIndex = response.LastIndexOf('/');
@@ -494,7 +496,7 @@ namespace Jellyfin.Channels.LazyMan
             var streamUrl = response.Substring(0, lastIndex) + '/' + file;
 
             // Format string for current stream
-            streamUrl = string.Format(streamUrl, foundGame.State == "Final" ? "complete-trimmed" : "slide");
+            streamUrl = string.Format(CultureInfo.InvariantCulture, streamUrl, foundGame.State == "Final" ? "complete-trimmed" : "slide");
 
             return new List<MediaSourceInfo>
             {

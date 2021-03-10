@@ -1,4 +1,5 @@
 using System;
+using System.Globalization;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Jellyfin.Channels.LazyMan.Configuration;
@@ -40,15 +41,16 @@ namespace Jellyfin.Channels.LazyMan.GameApi
             string mediaId,
             string cdn)
         {
-            var endpoint = $"https://{PluginConfiguration.M3U8Url}/getM3U8.php?league={league}&date={date:yyyy-MM-dd}&id={mediaId}&cdn={cdn}";
+            var endpoint = new Uri($"https://{PluginConfiguration.M3U8Url}/getM3U8.php?league={league}&date={date:yyyy-MM-dd}&id={mediaId}&cdn={cdn}");
 
             var url = await _httpClientFactory.CreateClient(NamedClient.Default)
-                .GetStringAsync(endpoint);
+                .GetStringAsync(endpoint)
+                .ConfigureAwait(false);
 
             _logger.LogDebug("[LazyMan][GetStreamUrlAsync] Response: {Url}", url);
 
             // stream not ready yet
-            if (url.Contains("Not"))
+            if (url.Contains("Not", StringComparison.OrdinalIgnoreCase))
             {
                 _logger.LogWarning("[LazyMan][GetStreamUrlAsync] Response contains Not!");
                 return (false, url);
@@ -61,7 +63,7 @@ namespace Jellyfin.Channels.LazyMan.GameApi
                 var expStart = expLocation + 4;
                 var expEnd = url.IndexOf('~', expLocation);
                 var expStr = url.Substring(expStart, expEnd - expStart);
-                var expiresOn = long.Parse(expStr);
+                var expiresOn = long.Parse(expStr, CultureInfo.InvariantCulture);
                 var currently = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() / 1000;
                 if (expiresOn < currently)
                 {

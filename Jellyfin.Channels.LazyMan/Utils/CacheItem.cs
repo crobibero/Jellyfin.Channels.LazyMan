@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Concurrent;
 using System.Timers;
 
@@ -7,7 +8,7 @@ namespace Jellyfin.Channels.LazyMan.Utils
     /// Item cache.
     /// </summary>
     /// <typeparam name="T">Type of item.</typeparam>
-    public class CacheItem<T>
+    public class CacheItem<T> : IDisposable
     {
         private readonly string _key;
         private readonly Timer _timer;
@@ -35,6 +36,25 @@ namespace Jellyfin.Channels.LazyMan.Utils
         /// Gets the value.
         /// </summary>
         public T Value { get; }
+
+        /// <inheritdoc />
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        /// <summary>
+        /// Dispose all properties.
+        /// </summary>
+        /// <param name="disposing">Whether to dispose all properties.</param>
+        protected virtual void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                _timer.Dispose();
+            }
+        }
 
         private void Timer_Expire(object sender, ElapsedEventArgs e)
         {
